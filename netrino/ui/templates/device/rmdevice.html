@@ -1,0 +1,14 @@
+  <div class="col-md-8 col-md-offset-2 alert alert-danger">
+        Are you sure you want to remove this device?
+        {% if warn %}
+          <br>There are <a href="#" data-toggle="tooltip"
+          data-html="true" title="To see them, search for {{ warn[0] }} at Infrastructure -> Network -> Service Requests">{{ warn[1] }}</a> services attached
+          to it.
+        {% endif %}
+  </div>
+
+<script>
+$(document).ready(function(){
+  $('[data-toggle="tooltip"]').tooltip();
+})
+</script>

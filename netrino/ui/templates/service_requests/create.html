@@ -1,0 +1,134 @@
+<div class="netrino-form">
+  <div class="form-group">
+    <label for="customer">Customer:</label>
+    <select id="customer" name="customer" class="form-control" required>
+      <option value="">Select Customer</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="service">Service Name:</label>
+    <select id="service" name="service" class="form-control" required>
+      <option value="">Select Service</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="device">Device:</label>
+    <select id="device" name="device" class="form-control" required multiple="multiple">
+      <option value="">Select Device</option>
+    </select>
+  </div>
+  <div id="port" class="form-group" style="display:none">
+    <label for="interface">Interface:</label>
+    <select id="interface" name="interface" class="form-control" required>
+      <option value="">Select Interface</option>
+    </select>
+  </div>
+  <div class="form-group additional-field" style="display:none">
+    <label for="">:</label>
+    <input type="text" class="form-control" id="" name="">
+  </div>
+{#  <button type="submit" class="btn btn-default">Submit</button> #}
+</div>
+
+<script>
+function post(path, params, method) {
+    method = method || "post"; 
+
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", path);
+
+    for(var key in params) {
+        if(params.hasOwnProperty(key)) {
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", params[key]);
+
+            form.appendChild(hiddenField);
+         }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function populateSelect2(path, element) {
+    var s2element = $(element).select2();
+    $.ajax({
+      url: path,
+      type: 'GET',
+      dataType: 'json',
+      success: function( data ) {
+        for (var d = 0; d < data.length; d++) {
+              var item = data[d];
+              var option = new Option(item.text, item.id, true, false);
+              s2element.append(option);
+        }
+        if (element == '#interface') {
+          $(element).find('option').slice(1).attr('class', 'interface_option')
+        }
+        s2element.trigger('change');
+      },
+      beforeSend: setHeader      
+    });
+    function setHeader(xhr) {
+      xhr.setRequestHeader('X-Format', 'select2');
+    }
+}
+
+function additionalFields(service_id) {
+  $.ajax({
+      url: 'ui/infrastructure/network/service/view/' + service_id,
+      type: 'GET',
+      dataType: 'json',
+      beforeSend: setHeader,
+      success: function( data ) {
+        for (var d = 0; d < data.length; d++) {
+            if (data[d] != 'interface') {
+              var element = $(".additional-field").clone();
+              element.find('label').attr('for',data[d]);
+              element.find('label').text(data[d]);
+              element.find('input').attr('id',data[d]);
+              element.find('input').attr('name',data[d]);
+              element.find('input').attr('required','required');
+              element.css('display','');
+              element.removeClass('additional-field')
+              element.addClass('added-field')
+              element.insertAfter('.additional-field')
+            }
+        }
+      }
+    });
+    function setHeader(xhr) {
+      xhr.setRequestHeader('X-Format', 'fields');
+    }
+}
+
+</script>
+<script>
+$(document).ready(function(){
+    $("#device").change(function () {
+        var dselect = $('#device').val();
+        if (dselect == '' || dselect.toString().includes(',')) {
+          $("#port").css('display','none');
+        }
+        else {
+          $("#port").css('display','');
+          $('option').remove('.interface_option');
+          populateSelect2('ui/infrastructure/network/device/' + dselect + '/ports', '#interface');
+        }
+    });
+    $("#service").change(function () {
+        $('.added-field').remove();
+        var service_id = $('#service').val();
+        if (service_id != '' ) {
+          additionalFields(service_id)
+        }
+    });
+    populateSelect2('ui/tenants', '#customer');
+    populateSelect2('ui/infrastructure/network/service', '#service');
+    populateSelect2('ui/infrastructure/network/device', '#device');
+
+})
+</script>

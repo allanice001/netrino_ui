@@ -1,0 +1,55 @@
+<!-- <form method="post" class="form-horizontal netrino-form">-->
+<div class="netrino-form">  
+  <div class="form-group">
+      <label for="service">Service Name:</label>
+      <input type="text" id="name" name="name" class="form-control" value="{{ serviceName }}" {% if view %}readonly{% else %}required{% endif %}>
+    </div>
+    <div class="form-group">
+      <label for="igroup">Interface Group:</label>
+      <select id="igroup" name="interface_group" class="form-control" {% if view %}disabled{% else %}required{% endif %}>
+      {#{% for igid,name in igroups.iteritems() %}
+        <option value={{ igid }} {% if interfaceGroup  == igid %}selected="selected"{% endif %}>{{ name|e }}</option>
+      {% endfor %}#}
+      </select>
+
+    </div>
+    <div class="form-group">
+      <label for="userrole">User Role:</label>
+      <input type="text" class="form-control" id="user_role" name="user_role" value="{{ userRole }}" {% if view %}readonly{% else %}required{% endif %}>
+    </div>
+    <div class="form-group">
+      <label for="ip">Config:</label>
+      <textarea rows="15" class="form-control" id="config_snippet" name="config_snippet"{% if view %}readonly{% else %}required{% endif %}>{{ snippet|e }}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="ip">Activation config:</label>
+      <textarea rows="15" class="form-control" id="activate_snippet" name="activate_snippet"{% if view %}readonly{% endif %}>{{ activate|e if activate != None }}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="ip">Deactivation config:</label>
+      <textarea rows="15" class="form-control" id="deactivate_snippet" name="deactivate_snippet"{% if view %}readonly{% endif %}>{{ deactivate|e if deactivate != None }}</textarea>
+    </div><!--
+    {% if view %}
+    <a class="btn btn-warning" href="../edit/{{ serviceID }}" role="button">Edit</a>
+    <a class="btn btn-danger" href="../rm/{{ serviceID }}" role="button">Delete</a>
+    <button class="btn btn-default" onclick="ajax_query('#window_content','/ui/infrastructure/network/service');">Cancel</button>
+    {% else %}
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button class="btn btn-default" onclick="ajax_query('#window_content','/ui/infrastructure/network/service');">Cancel</button>
+    {% endif %}
+  </form>-->
+</div>
+
+<script>
+    var element = $('#igroup').select2({
+      placeholder: 'Select an option'
+    });
+    $.getJSON( '/ui/infrastructure/network/igroup/view', { view: 'select2' } ).then( function( data ) {
+      for (var d = 0; d < data.length; d++) {
+              var item = data[d];
+              var option = new Option(item.text, item.id, true, true);
+              element.append(option);
+      }
+      element.trigger('change');
+    });
+</script>

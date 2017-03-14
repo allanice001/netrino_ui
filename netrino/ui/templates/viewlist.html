@@ -1,0 +1,10 @@
+{% extends "tachyon.ui/list.html" %}
+{% block datatable %}
+{{ dt }}
+{% endblock %}
+
+{% block create_button %}
+<a class="btn btn-primary" href="{{ SITE }}/{{ create_url }}" role="button" onclick="return admin(this)">Create {{ resource }}</a>
+<button class="btn btn-default" onclick="close_window()">Close</button>
+
+{% endblock %}
