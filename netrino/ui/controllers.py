@@ -447,7 +447,7 @@ def createSR(req, resp, **kwargs):
         renderValues['submit_url'] = 'infrastructure/network/sr/create'
         renderValues['back_url'] = 'infrastructure/network/sr'
         renderValues['formid'] = 'service_request'
-
+        renderValues['app'] = req.get_app()
         templateFile = 'netrino.ui/service_requests/create.html'
         t = nfw.jinja.get_template(templateFile)
         form = t.render(**renderValues)

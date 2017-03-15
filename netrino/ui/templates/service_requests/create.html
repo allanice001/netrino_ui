@@ -56,7 +56,7 @@ function post(path, params, method) {
 function populateSelect2(path, element) {
     var s2element = $(element).select2();
     $.ajax({
-      url: path,
+      url: '{{app}}/' + path,
       type: 'GET',
       dataType: 'json',
       success: function( data ) {
@@ -79,7 +79,7 @@ function populateSelect2(path, element) {
 
 function additionalFields(service_id) {
   $.ajax({
-      url: 'ui/infrastructure/network/service/view/' + service_id,
+      url: '{{app}}/infrastructure/network/service/view/' + service_id,
       type: 'GET',
       dataType: 'json',
       beforeSend: setHeader,
@@ -116,7 +116,7 @@ $(document).ready(function(){
         else {
           $("#port").css('display','');
           $('option').remove('.interface_option');
-          populateSelect2('ui/infrastructure/network/device/' + dselect + '/ports', '#interface');
+          populateSelect2('infrastructure/network/device/' + dselect + '/ports', '#interface');
         }
     });
     $("#service").change(function () {
@@ -126,9 +126,9 @@ $(document).ready(function(){
           additionalFields(service_id)
         }
     });
-    populateSelect2('ui/tenants', '#customer');
-    populateSelect2('ui/infrastructure/network/service', '#service');
-    populateSelect2('ui/infrastructure/network/device', '#device');
+    populateSelect2('tenants', '#customer');
+    populateSelect2('infrastructure/network/service', '#service');
+    populateSelect2('infrastructure/network/device', '#device');
 
 })
 </script>
