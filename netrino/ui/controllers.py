@@ -96,24 +96,24 @@ def viewService(req, resp, id=None):
     return_format = req.headers.get('X-Format')
     if id:
         api = RestClient(req.context['restapi'])
-        headers, services = api.execute(
+        headers, service = api.execute(
             nfw.HTTP_GET, "/infrastructure/network/services/%s" % (id,))
         if return_format == "fields":
-            fields = services[id]['fields'].split(',')
+            fields = service['fields'].split(',')
             return json.dumps(fields, indent=4)
         templateFile = 'netrino.ui/service/createservice.html'
         t = nfw.jinja.get_template(templateFile)
         renderValues = {}
         renderValues['view'] = 'view'
         renderValues['serviceID'] = id
-        renderValues['serviceName'] = services[id]['name']
-        renderValues['interfaceGroup'] = services[id]['igroup']
-        renderValues['userRole'] = services[id]['urole']
-        renderValues['snippet'] = services[id]['snippet']
-        renderValues['activate'] = services[id]['activate']
-        renderValues['deactivate'] = services[id]['deactivate']
+        renderValues['serviceName'] = service['name']
+        renderValues['interfaceGroup'] = service['interface_group']
+        renderValues['userRole'] = service['user_role']
+        renderValues['snippet'] = service['config_snippet']
+        renderValues['activate'] = service['activate_snippet']
+        renderValues['deactivate'] = service['deactivate_snippet']
         form = t.render(**renderValues)
-        title = services[id]['name']
+        title = service['name']
         view(req, resp, id=id, content=form, title=title)
     else:
         if return_format == "select2":
@@ -156,20 +156,20 @@ def editService(req, resp, id, **kwargs):
             editService(req, resp, error=[e])
     else:
         api = RestClient(req.context['restapi'])
-        headers, services = api.execute(
+        headers, service = api.execute(
             nfw.HTTP_GET, "/infrastructure/network/services/%s" % (id,))
         templateFile = 'netrino.ui/service/createservice.html'
         t = nfw.jinja.get_template(templateFile)
         renderValues = {}
         renderValues['serviceID'] = id
-        renderValues['serviceName'] = services[id]['name']
-        renderValues['interfaceGroup'] = services[id]['igroup']
-        renderValues['userRole'] = services[id]['urole']
-        renderValues['snippet'] = services[id]['snippet']
-        renderValues['activate'] = services[id]['activate']
-        renderValues['deactivate'] = services[id]['deactivate']
+        renderValues['serviceName'] = service['name']
+        renderValues['interfaceGroup'] = service['interface_group']
+        renderValues['userRole'] = service['user_role']
+        renderValues['snippet'] = service['config_snippet']
+        renderValues['activate'] = service['activate_snippet']
+        renderValues['deactivate'] = service['deactivate_snippet']
         form = t.render(**renderValues)
-        title = services[id]['name']
+        title = service['name']
         edit(req, resp, id=id, content=form, title=title, **kwargs)
 
 
@@ -459,8 +459,29 @@ def viewSR(req, resp, id=None, **kwargs):
     renderValues = {}
     renderValues['resource'] = 'Service Request'
     renderValues['window'] = '#window_content'
-    fields = OrderedDict()
     if id:
+        api = RestClient(req.context['restapi'])
+        headers, services = api.execute(
+            nfw.HTTP_GET, "/infrastructure/network/services/%s" % (id,))
+        if return_format == "fields":
+            fields = services[id]['fields'].split(',')
+            return json.dumps(fields, indent=4)
+        templateFile = 'netrino.ui/service/createservice.html'
+        t = nfw.jinja.get_template(templateFile)
+        renderValues = {}
+        renderValues['view'] = 'view'
+        renderValues['serviceID'] = id
+        renderValues['serviceName'] = services[id]['name']
+        renderValues['interfaceGroup'] = services[id]['igroup']
+        renderValues['userRole'] = services[id]['urole']
+        renderValues['snippet'] = services[id]['snippet']
+        renderValues['activate'] = services[id]['activate']
+        renderValues['deactivate'] = services[id]['deactivate']
+        form = t.render(**renderValues)
+        title = services[id]['name']
+        view(req, resp, id=id, content=form, title=title)
+
+
         templateFile = 'netrino.ui/device/view.html'
         fields['port'] = 'Interface'
         #fields['customername'] = 'Customer'
@@ -502,14 +523,15 @@ def viewSR(req, resp, id=None, **kwargs):
         renderValues['window'] = '#window_content'
         renderValues['description'] = description
     else:
+        fields = OrderedDict()
         fields['creation_date'] = 'Creation Date'
         fields['customer'] = 'Customer'
         fields['device'] = 'Device'
         fields['service'] = 'Service'
         fields['status'] = 'Status'
-        dt = datatable(
+        content = datatable(
             req, 'service_requests', '/infrastructure/network/service_requests',
             fields, view_button=True)
         renderValues['title'] = "Service Requests"
 
-    view(req, resp, content=dt, **renderValues)
+    view(req, resp, content=content, **renderValues)
