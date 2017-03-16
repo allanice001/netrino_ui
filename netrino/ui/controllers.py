@@ -457,71 +457,27 @@ def createSR(req, resp, **kwargs):
 
 def viewSR(req, resp, id=None, **kwargs):
     renderValues = {}
-    renderValues['resource'] = 'Service Request'
     renderValues['window'] = '#window_content'
     if id:
         api = RestClient(req.context['restapi'])
-        headers, services = api.execute(
-            nfw.HTTP_GET, "/infrastructure/network/services/%s" % (id,))
-        if return_format == "fields":
-            fields = services[id]['fields'].split(',')
-            return json.dumps(fields, indent=4)
-        templateFile = 'netrino.ui/service/createservice.html'
+        headers, response = api.execute(
+            nfw.HTTP_GET, "/infrastructure/network/service_requests/%s" % (id,))
+        templateFile = 'netrino.ui/service_requests/view.html'
         t = nfw.jinja.get_template(templateFile)
-        renderValues = {}
-        renderValues['view'] = 'view'
-        renderValues['serviceID'] = id
-        renderValues['serviceName'] = services[id]['name']
-        renderValues['interfaceGroup'] = services[id]['igroup']
-        renderValues['userRole'] = services[id]['urole']
-        renderValues['snippet'] = services[id]['snippet']
-        renderValues['activate'] = services[id]['activate']
-        renderValues['deactivate'] = services[id]['deactivate']
-        form = t.render(**renderValues)
-        title = services[id]['name']
-        view(req, resp, id=id, content=form, title=title)
-
-
-        templateFile = 'netrino.ui/device/view.html'
-        fields['port'] = 'Interface'
-        fields['customername'] = 'Customer'
-        fields['service'] = 'Service'
-        fields['alias'] = 'IP'
-        fields['prefix_len'] = 'Prefix Length'
-        fields['descr'] = 'Description'
-        fields['mac'] = 'Mac'
-        fields['igroupname'] = 'Interface Group'
-        fields['present'] = 'Present'
-        fields['customername'] = 'Customer'
-        fields['service'] = 'Service'
-        apiurl = "/infrastructure/network/devices/" + id + "/ports"
-        dt = datatable(req, 'devices', apiurl, fields)
-        edit_url = "/ui/infrastructure/network/device/edit/" + id
-        rm_url = "/ui/infrastructure/network/device/rm/" + id
-        back_url = "/ui/infrastructure/network/device/"
-        api = RestClient(req.context['restapi'])
-        response_headers, device = api.execute(
-            nfw.HTTP_GET, "/infrastructure/network/devices/" + id)
-        renderValues['title'] = device['name']
-        description = '<form action="../add/'
-        description += id
-        description += '" method="post">'
-        description += 'As discovered on '
-        description += str(device['last_discover'])
-        description += '''. <button name="refreshdevice">Refresh</button>
-                </form>'''
-        renderValues['description'] = description
-        response_headers, igroups = api.execute(
-            nfw.HTTP_GET, "/infrastructure/network/igroups")  # This must be done by browser rather
-        renderValues['igroups'] = igroups
-        renderValues['device_id'] = id
-        renderValues['edit_url'] = edit_url
-        renderValues['rm_url'] = rm_url
+        renderValues = response
+        if response['status'] == "SUCCESS" or response['status'] == "INACTIVE":
+            activate_url = ("infrastructure/network/service_requests/" +
+                            id + "/activate")
+            renderValues['activate_url'] = activate_url
+        elif response['status'] == "ACTIVE":
+            deactivate_url = ("infrastructure/network/service_requests/" +
+                            id + "/deactivate")
+            renderValues['deactivate_url'] = deactivate_url
+        back_url = "infrastructure/network/service_requests/"
         renderValues['back_url'] = back_url
-        renderValues['window'] = '#window_content'
-        renderValues['back'] = True
-        renderValues['window'] = '#window_content'
-        renderValues['description'] = description
+        renderValues['title'] = "View Service Request"
+        content = t.render(**renderValues)
+        view(req, resp, content=content, **renderValues)
     else:
         fields = OrderedDict()
         fields['creation_date'] = 'Creation Date'
