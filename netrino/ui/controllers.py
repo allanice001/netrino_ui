@@ -128,8 +128,8 @@ def viewService(req, resp, id=None):
             fields = OrderedDict()
             fields['name'] = 'Service Name'
             # TODO:
-            # fields['user_role'] = 'Roles'
-            # fields['interface_group'] = 'Interface Group'
+            fields['user_role'] = 'Roles'
+            fields['interface_group'] = 'Interface Group'
             dt = datatable(
                 req, 'services', '/infrastructure/network/services?view=datatable', fields, view_button=True)
             view(req, resp, content=dt, title=title)
@@ -484,8 +484,8 @@ def viewSR(req, resp, id=None, **kwargs):
 
         templateFile = 'netrino.ui/device/view.html'
         fields['port'] = 'Interface'
-        #fields['customername'] = 'Customer'
-        #fields['service'] = 'Service'
+        fields['customername'] = 'Customer'
+        fields['service'] = 'Service'
         fields['alias'] = 'IP'
         fields['prefix_len'] = 'Prefix Length'
         fields['descr'] = 'Description'
