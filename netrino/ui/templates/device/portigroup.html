@@ -1,0 +1,24 @@
+{{ dt }}
+
+
+<script>
+    $(document).ready(function() {
+        
+        $( "button" ).click(function() {
+          $( ".view_button" ).replaceWith( '<input type="checkbox" name="vehicle" value="Bike">' );
+        });
+
+        $(".checkbox").change(function() {
+            if(this.checked) {
+                //Do stuff
+            }
+        });
+
+        $('#portigroup').dataTable( {
+            "fnDrawCallback": function( oSettings ) {
+                alert( 'DataTables has redrawn the table' );
+            }
+        } );
+
+    });
+</script>

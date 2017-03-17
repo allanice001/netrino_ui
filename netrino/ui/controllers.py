@@ -118,7 +118,8 @@ def viewService(req, resp, id=None):
     else:
         if return_format == "select2":
             api = RestClient(req.context['restapi'])
-            headers, response = api.execute(nfw.HTTP_GET, "/infrastructure/network/services?view=datatable")
+            headers, response = api.execute(
+                nfw.HTTP_GET, "/infrastructure/network/services?view=datatable")
             result = []
             for r in response:
                 result.append({'id': r['id'], 'text': r['name']})
@@ -219,22 +220,6 @@ def deleteService(req, resp, id):
         editService(req, resp, id, error=[e])
 
 
-# Can prolly remove:
-#
-# def rmservice(**kwargs):
-#     service_id = kwargs['service_id']
-#     service = getServices(service_id)
-#     services = getSR(sid=service_id, onlyActive=True)
-#     num_serv = len(services)
-#     renderValues = {'title': "Remove " + service[service_id]['name']}
-#     if num_serv > 0:
-#         warn = (service[service_id]['name'], str(num_serv))
-#         renderValues['warn'] = warn
-#     templateFile = 'netrino/rmservice.html'
-#     renderValues['service_id'] = service_id
-#     return (templateFile, renderValues)
-
-
 def viewDevice(req, resp, id=None, **kwargs):
     renderValues = {}
     renderValues['resource'] = 'Device'
@@ -278,11 +263,17 @@ def viewDevice(req, resp, id=None, **kwargs):
         renderValues['window'] = '#window_content'
         renderValues['back'] = True
         renderValues['description'] = description
+        renderValues['create_url'] = ''
+        dt += ('<button class="btn btn-primary" ' +
+               'data-url="infrastructure/network/device/' +
+               id + '/ports/igroup">' +
+               'Assign Interface Groups</button>')
     else:
         return_format = req.headers.get('X-Format')
         if return_format == "select2":
             api = RestClient(req.context['restapi'])
-            headers, response = api.execute(nfw.HTTP_GET, "/infrastructure/network/devices")
+            headers, response = api.execute(
+                nfw.HTTP_GET, "/infrastructure/network/devices")
             result = []
             for r in response:
                 result.append({'id': r['id'], 'text': r['name']})
@@ -298,6 +289,24 @@ def viewDevice(req, resp, id=None, **kwargs):
             renderValues['title'] = 'Network Devices'
 
     view(req, resp, content=dt, **renderValues)
+
+
+def portsIGroup(req, resp, id, **kwargs):
+    back_url = 'infrastructure/network/devices/" + id + "/ports"'
+    fields = OrderedDict()
+    fields['port'] = 'Interface'
+    fields['igroupname'] = 'Interface Group'
+    apiurl = "/infrastructure/network/devices/" + id + "/ports"
+    dt = datatable(req, 'devices', apiurl, fields, view_button=True)
+    back_url = "/ui/infrastructure/network/device/view/%s" % (id,)
+    renderValues = {}
+    renderValues['back_url'] = back_url
+    renderValues['window'] = '#window_content'
+    renderValues['dt'] = dt
+    templateFile = 'netrino.ui/device/portigroup.html'
+    t = nfw.jinja.get_template(templateFile)
+    content = t.render(**renderValues)
+    view(req, resp, content=content, **renderValues)
 
 
 def createDevice(req, resp):
@@ -379,8 +388,8 @@ def updateDevice(req, device_id):
     id = device_id
     api = RestClient(req.context['restapi'])
     response_headers, device = api.execute(
-            nfw.HTTP_PUT, "/infrastructure/network/devices/" + id)
-    
+        nfw.HTTP_PUT, "/infrastructure/network/devices/" + id)
+
 
 def confirmRMdevice(req, resp, id):
     api = RestClient(req.context['restapi'])
@@ -389,7 +398,8 @@ def confirmRMdevice(req, resp, id):
     if not id in device:
         raise nfw.HTTPBadRequest("Device not found: %s" % device_id)
     request_headers = {}
-    request_headers['X-Search-Specific'] = 'device=' + device_id + ',status=ACTIVE'
+    request_headers['X-Search-Specific'] = 'device=' + \
+        device_id + ',status=ACTIVE'
     response_headers, result = api.execute(
         nfw.HTTP_GET, "/infrastructure/network/service_requests/", headers=request_headers)
     num_serv = len(result)
@@ -410,7 +420,8 @@ def deleteDevice(req, device_id):
         nfw.HTTP_DELETE, "/infrastructure/network/devices/" + device_id)
     return result
 
-def getPorts(req,id):
+
+def getPorts(req, id):
     api = RestClient(req.context['restapi'])
     response_headers, response = api.execute(
         nfw.HTTP_GET, "/infrastructure/network/devices/%s/ports" % (id,))
@@ -423,6 +434,7 @@ def getPorts(req,id):
     else:
         return json.dumps(response, indent=4)
 
+
 def createSR(req, resp, **kwargs):
     if req.method == nfw.HTTP_POST:
         api = RestClient(req.context['restapi'])
@@ -434,7 +446,7 @@ def createSR(req, resp, **kwargs):
                 deviceIDs = devices.split(',')
             else:
                 postValues[value] = values.get(value)
-        
+
         for device in deviceIDs:
             postValues['device'] = int(device)
             headers, response = api.execute(
@@ -464,19 +476,21 @@ def viewSR(req, resp, id=None, **kwargs):
             nfw.HTTP_GET, "/infrastructure/network/service_requests/%s" % (id,))
         templateFile = 'netrino.ui/service_requests/view.html'
         t = nfw.jinja.get_template(templateFile)
+        response = response[0]
         renderValues = response
-        if response['status'] == "SUCCESS" or response['status'] == "INACTIVE":
-            activate_url = ("infrastructure/network/service_requests/" +
-                            id + "/activate")
+        if response['status'] in ["SUCCESS", "INACTIVE", "UNKNOWN"]:
+            activate_url = ("infrastructure/network/sr/" +
+                            "edit/" + id + "/activate")
             renderValues['activate_url'] = activate_url
         elif response['status'] == "ACTIVE":
-            deactivate_url = ("infrastructure/network/service_requests/" +
-                            id + "/deactivate")
+            deactivate_url = ("infrastructure/network/sr/" +
+                              "edit/" + id + "/deactivate")
             renderValues['deactivate_url'] = deactivate_url
         back_url = "infrastructure/network/service_requests/"
         renderValues['back_url'] = back_url
         renderValues['title'] = "View Service Request"
         content = t.render(**renderValues)
+        log.debug("MYDEBUG: %s" % (str(renderValues),))
         view(req, resp, content=content, **renderValues)
     else:
         fields = OrderedDict()
@@ -491,3 +505,17 @@ def viewSR(req, resp, id=None, **kwargs):
         renderValues['title'] = "Service Requests"
 
     view(req, resp, content=content, **renderValues)
+
+
+def activateSR(req, resp, id=id):
+    api = RestClient(req.context['restapi'])
+    headers, response = api.execute(
+        nfw.HTTP_PUT, "/infrastructure/network/service_requests/%s" % (id,))
+    viewSR(req, resp, id=id)
+
+
+def deactivateSR(req, resp, id=id):
+    api = RestClient(req.context['restapi'])
+    headers, response = api.execute(
+        nfw.HTTP_DELETE, "/infrastructure/network/service_requests/%s" % (id,))
+    viewSR(req, resp, id=id)

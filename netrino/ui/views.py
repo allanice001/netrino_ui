@@ -30,9 +30,9 @@ class ServiceRequest(object):
                        self.getjson, 'network:admin')
         app.router.add(nfw.HTTP_GET, '/infrastructure/network/sr/view/{id}',
                        self.get, 'network:admin')
-        app.router.add(nfw.HTTP_POST, '/infrastructure/network/sr/edit/{id}/activate',
+        app.router.add(nfw.HTTP_GET, '/infrastructure/network/sr/edit/{id}/activate',
                        self.activate, 'network:admin')
-        app.router.add(nfw.HTTP_POST, '/infrastructure/network/sr/edit/{id}/deactivate',
+        app.router.add(nfw.HTTP_GET, '/infrastructure/network/sr/edit/{id}/deactivate',
                        self.deactivate, 'network:admin')
 
         app.context['menu'].add(
@@ -48,10 +48,10 @@ class ServiceRequest(object):
         getSelect2(req, resp, service_requests)
 
     def activate(self, req, resp, id):
-        edit(req, resp, id=id)
+        activateSR(req, resp, id=id)
 
     def deactivate(self, req, resp, id):
-        deleteIGroup(req, resp, id=id)
+        deactivateSR(req, resp, id=id)
 
 
 @nfw.app.resources()
@@ -144,6 +144,8 @@ class NetworkDevice(object):
                        self.get, 'network:admin')
         app.router.add(nfw.HTTP_GET, '/infrastructure/network/device/{id}/ports',
                        self.getports, 'network:admin')
+        app.router.add(nfw.HTTP_GET, '/infrastructure/network/device/{id}/ports/igroup',
+                       self.portsigroup, 'network:admin')
         app.router.add(nfw.HTTP_GET, '/infrastructure/network/device/view/{id}',
                        self.get, 'network:admin')
         app.router.add(nfw.HTTP_GET, '/infrastructure/network/device/edit/{id}',
@@ -166,12 +168,14 @@ class NetworkDevice(object):
             createDevice(req, resp)
         elif req.method == 'POST':
             result = createDevicePost(req, resp)
-            # This shoud load view srs
-            viewDevice(req, resp)#, error=result)
+            viewDevice(req, resp)
 
     def getports(self, req, resp, id):
-        result = getPorts(req,id)
+        result = getPorts(req, id)
         return result
+
+    def portsigroup(self, req, resp, id):
+        portsIGroup(req, resp, id)
 
     def edit(self, req, resp, id):
         if req.method == 'GET':

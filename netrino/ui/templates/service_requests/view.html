@@ -1,0 +1,24 @@
+<div class="col-md-2"><b>Customer:</b></div><div class="col-md-10">{{ customer }}</div>
+<div class="col-md-2"><b>Service:</b></div><div class="col-md-10">{{ service }}</div>
+<div class="col-md-2"><b>Creation Date:</b></div><div class="col-md-10">{{ creation_date }}</div>
+<div class="col-md-2"><b>Device:</b></div><div class="col-md-10">{{ device }}</div>
+{# TODO: {% if port %}<b>Port:</b> {{ port }}{% endif %}<br> #}
+{% if status == "SUCCESS" %}
+  {% set alert = " alert-info" %}
+{% elif status == "ACTIVE" %}
+  {% set alert = " alert-success" %}
+{% elif status == "UNKNOWN" %}
+  {% set alert = " alert-warning" %}
+{% elif status == "FAILURE" %}
+  {% set alert = " alert-danger" %}
+{% else %}
+  {% set alert = "" %}
+{% endif %}
+
+<div class="col-md-2"><b>Status:</b></div><div class="col-md-10">{{ status }}</div>
+
+<div class="col-md-12"><b>Result log:</b></div>
+<div class="row">
+  <div class="col-md-8 col-md-offset-2"><pre>{{ result }}</pre></div>
+</div>
+
